@@ -1,0 +1,32 @@
+services:
+  - type: web
+    name: saptnova-backend
+    env: python
+    region: oregon
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0
+      - key: DATABASE_URL
+        fromDatabase:
+          name: saptnova-db
+          property: connectionString
+      - key: SECRET_KEY
+        generateValue: true
+      - key: ALGORITHM
+        value: HS256
+      - key: ACCESS_TOKEN_EXPIRE_MINUTES
+        value: 30
+      - key: ALLOWED_ORIGINS
+        value: https://saptnova.vercel.app,https://yourdomain.com
+      # Add these manually in Render dashboard:
+      # RAZORPAY_KEY_ID
+      # RAZORPAY_KEY_SECRET
+
+databases:
+  - name: saptnova-db
+    databaseName: saptnova
+    user: saptnova
+    plan: free
