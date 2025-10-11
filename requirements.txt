@@ -3,3 +3,7 @@ uvicorn
 sqlalchemy
 psycopg2-binary
 python-dotenv
+email-validator
+passlib[bcrypt]
+python-jose[cryptography]
+razorpay
