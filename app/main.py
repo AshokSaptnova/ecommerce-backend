@@ -118,7 +118,7 @@ def delete_product(product_id: str, db: Session = Depends(get_db)):
     return {"message": "Product deleted successfully"}
 
 # Setup endpoint - use once then remove
-@router.post("/setup-production-users-fresh")
+@app.post("/setup-production-users-fresh")
 def setup_production_users_fresh(db: Session = Depends(get_db)):
     """
     Delete and recreate admin and vendor users.
