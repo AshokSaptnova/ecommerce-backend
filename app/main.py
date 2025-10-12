@@ -136,14 +136,14 @@ def setup_production_users(db: Session = Depends(get_db)):
             admin = models.User(
                 username="admin",
                 email="admin@ecommerce.com",
-                hashed_password=pwd_context.hash("admin123"),
+                hashed_password=pwd_context.hash("admin"),
                 role="ADMIN",
                 full_name="Admin User"
             )
             db.add(admin)
             db.commit()
             results["admin"] = True
-            results["messages"].append("✅ Admin user created (username: admin, password: admin123)")
+            results["messages"].append("✅ Admin user created (username: admin, password: admin)")
         else:
             results["messages"].append("⚠️ Admin user already exists")
         
@@ -153,7 +153,7 @@ def setup_production_users(db: Session = Depends(get_db)):
             vendor_user = models.User(
                 username="vendor1",
                 email="vendor1@example.com",
-                hashed_password=pwd_context.hash("vendor123"),
+                hashed_password=pwd_context.hash("vendor"),
                 role="VENDOR",
                 full_name="Test Vendor"
             )
@@ -169,7 +169,7 @@ def setup_production_users(db: Session = Depends(get_db)):
             db.add(vendor)
             db.commit()
             results["vendor"] = True
-            results["messages"].append("✅ Vendor user created (username: vendor1, password: vendor123)")
+            results["messages"].append("✅ Vendor user created (username: vendor1, password: vendor)")
         else:
             results["messages"].append("⚠️ Vendor user already exists")
         
