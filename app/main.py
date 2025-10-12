@@ -116,3 +116,67 @@ def delete_product(product_id: str, db: Session = Depends(get_db)):
     if not db_product:
         raise HTTPException(status_code=404, detail="Product not found")
     return {"message": "Product deleted successfully"}
+
+# Setup endpoint - use once then remove
+@app.post("/setup-production-users")
+def setup_production_users(db: Session = Depends(get_db)):
+    """
+    One-time setup endpoint to create admin and vendor users.
+    Remove this endpoint after initial setup for security!
+    """
+    from passlib.context import CryptContext
+    
+    pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+    results = {"admin": False, "vendor": False, "messages": []}
+    
+    try:
+        # Create admin user
+        existing_admin = db.query(models.User).filter(models.User.username == "admin").first()
+        if not existing_admin:
+            admin = models.User(
+                username="admin",
+                email="admin@ecommerce.com",
+                hashed_password=pwd_context.hash("admin123"),
+                role="ADMIN",
+                full_name="Admin User"
+            )
+            db.add(admin)
+            db.commit()
+            results["admin"] = True
+            results["messages"].append("✅ Admin user created (username: admin, password: admin123)")
+        else:
+            results["messages"].append("⚠️ Admin user already exists")
+        
+        # Create vendor user
+        existing_vendor = db.query(models.User).filter(models.User.username == "vendor1").first()
+        if not existing_vendor:
+            vendor_user = models.User(
+                username="vendor1",
+                email="vendor1@example.com",
+                hashed_password=pwd_context.hash("vendor123"),
+                role="VENDOR",
+                full_name="Test Vendor"
+            )
+            db.add(vendor_user)
+            db.commit()
+            
+            vendor = models.Vendor(
+                user_id=vendor_user.id,
+                store_name="Test Store",
+                description="Test vendor store",
+                contact_email="vendor1@example.com"
+            )
+            db.add(vendor)
+            db.commit()
+            results["vendor"] = True
+            results["messages"].append("✅ Vendor user created (username: vendor1, password: vendor123)")
+        else:
+            results["messages"].append("⚠️ Vendor user already exists")
+        
+        results["messages"].append("⚠️ IMPORTANT: Change these default passwords after first login!")
+        results["messages"].append("🔒 SECURITY: Remove this /setup-production-users endpoint after setup!")
+        
+        return results
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Setup failed: {str(e)}")
