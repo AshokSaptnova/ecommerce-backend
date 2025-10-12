@@ -118,6 +118,78 @@ def delete_product(product_id: str, db: Session = Depends(get_db)):
     return {"message": "Product deleted successfully"}
 
 # Setup endpoint - use once then remove
+@router.post("/setup-production-users-fresh")
+def setup_production_users_fresh(db: Session = Depends(get_db)):
+    """
+    Delete and recreate admin and vendor users.
+    Use this if the initial setup had issues.
+    """
+    import bcrypt
+    
+    results = {"admin": False, "vendor": False, "messages": []}
+    
+    try:
+        # Delete existing users first
+        db.query(models.Vendor).filter(models.Vendor.user_id.in_(
+            db.query(models.User.id).filter(models.User.username.in_(['admin', 'vendor1']))
+        )).delete(synchronize_session=False)
+        
+        db.query(models.User).filter(models.User.username.in_(['admin', 'vendor1'])).delete(synchronize_session=False)
+        db.commit()
+        
+        # Create admin user using bcrypt directly
+        admin_pwd_bytes = b"admin"
+        salt = bcrypt.gensalt()
+        hashed = bcrypt.hashpw(admin_pwd_bytes, salt).decode('utf-8')
+        
+        admin = models.User(
+            username="admin",
+            email="admin@ecommerce.com",
+            hashed_password=hashed,
+            role="admin",
+            full_name="Admin User"
+        )
+        db.add(admin)
+        db.commit()
+        results["admin"] = True
+        results["messages"].append("✅ Admin user created (username: admin, password: admin)")
+        
+        # Create vendor user using bcrypt directly
+        vendor_pwd_bytes = b"vendor"
+        salt = bcrypt.gensalt()
+        hashed = bcrypt.hashpw(vendor_pwd_bytes, salt).decode('utf-8')
+        
+        vendor_user = models.User(
+            username="vendor1",
+            email="vendor1@example.com",
+            hashed_password=hashed,
+            role="vendor",
+            full_name="Test Vendor"
+        )
+        db.add(vendor_user)
+        db.commit()
+        db.refresh(vendor_user)  # Refresh to get the ID
+        
+        vendor = models.Vendor(
+            user_id=vendor_user.id,
+            business_name="Test Store",
+            business_description="Test vendor store",
+            business_email="vendor1@example.com"
+        )
+        db.add(vendor)
+        db.commit()
+        results["vendor"] = True
+        results["messages"].append("✅ Vendor user created (username: vendor1, password: vendor)")
+        
+        results["messages"].append("⚠️ IMPORTANT: Change these default passwords after first login!")
+        results["messages"].append("🔒 SECURITY: Remove setup endpoints after setup!")
+        
+        return results
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Setup failed: {str(e)}")
+
+# Setup endpoint - use once then remove
 @app.post("/setup-production-users")
 def setup_production_users(db: Session = Depends(get_db)):
     """
