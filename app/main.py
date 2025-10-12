@@ -124,18 +124,23 @@ def setup_production_users(db: Session = Depends(get_db)):
     One-time setup endpoint to create admin and vendor users.
     Remove this endpoint after initial setup for security!
     """
-    from .auth import get_password_hash
+    import bcrypt
     
     results = {"admin": False, "vendor": False, "messages": []}
     
     try:
-        # Create admin user
+        # Create admin user using bcrypt directly
         existing_admin = db.query(models.User).filter(models.User.username == "admin").first()
         if not existing_admin:
+            # Hash password with bcrypt directly
+            admin_pwd_bytes = b"admin"
+            salt = bcrypt.gensalt()
+            hashed = bcrypt.hashpw(admin_pwd_bytes, salt).decode('utf-8')
+            
             admin = models.User(
                 username="admin",
                 email="admin@ecommerce.com",
-                hashed_password=get_password_hash("admin"),
+                hashed_password=hashed,
                 role="ADMIN",
                 full_name="Admin User"
             )
@@ -146,13 +151,18 @@ def setup_production_users(db: Session = Depends(get_db)):
         else:
             results["messages"].append("⚠️ Admin user already exists")
         
-        # Create vendor user
+        # Create vendor user using bcrypt directly
         existing_vendor = db.query(models.User).filter(models.User.username == "vendor1").first()
         if not existing_vendor:
+            # Hash password with bcrypt directly
+            vendor_pwd_bytes = b"vendor"
+            salt = bcrypt.gensalt()
+            hashed = bcrypt.hashpw(vendor_pwd_bytes, salt).decode('utf-8')
+            
             vendor_user = models.User(
                 username="vendor1",
                 email="vendor1@example.com",
-                hashed_password=get_password_hash("vendor"),
+                hashed_password=hashed,
                 role="VENDOR",
                 full_name="Test Vendor"
             )
