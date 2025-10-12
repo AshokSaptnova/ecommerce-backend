@@ -171,9 +171,9 @@ def setup_production_users(db: Session = Depends(get_db)):
             
             vendor = models.Vendor(
                 user_id=vendor_user.id,
-                store_name="Test Store",
-                description="Test vendor store",
-                contact_email="vendor1@example.com"
+                business_name="Test Store",
+                business_description="Test vendor store",
+                business_email="vendor1@example.com"
             )
             db.add(vendor)
             db.commit()
