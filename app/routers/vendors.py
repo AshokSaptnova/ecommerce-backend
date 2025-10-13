@@ -83,6 +83,36 @@ def get_vendor_products(
     """Get products by vendor"""
     return crud.get_products(db=db, vendor_id=vendor_id, skip=skip, limit=limit)
 
+@router.post("/{vendor_id}/products", response_model=schemas.Product)
+def create_vendor_product(
+    vendor_id: int,
+    product: schemas.ProductCreate,
+    current_user: models.User = Depends(auth.get_current_vendor_user),
+    db: Session = Depends(auth.get_db)
+):
+    """Create a new product for vendor"""
+    # Verify the vendor owns this vendor_id
+    vendor = crud.get_vendor_by_user_id(db, current_user.id)
+    if not vendor or vendor.id != vendor_id:
+        raise HTTPException(
+            status_code=403,
+            detail="You can only create products for your own vendor account"
+        )
+    
+    # Ensure product.vendor_id matches the path vendor_id
+    if product.vendor_id != vendor_id:
+        raise HTTPException(
+            status_code=400,
+            detail="Product vendor_id must match the URL vendor_id"
+        )
+    
+    # Check if SKU already exists
+    existing_product = crud.get_product_by_sku(db, product.sku)
+    if existing_product:
+        raise HTTPException(status_code=400, detail="SKU already exists")
+    
+    return crud.create_product(db=db, product=product)
+
 @router.get("/{vendor_id}/orders", response_model=schemas.OrderListResponse)
 def get_vendor_orders(
     vendor_id: int,
