@@ -159,7 +159,16 @@ def delete_vendor(db: Session, vendor_id: int):
 # Category CRUD
 def create_category(db: Session, category: schemas.CategoryCreate):
     """Create a new category"""
-    db_category = models.Category(**category.dict())
+    import re
+    
+    # Auto-generate slug from name if not provided
+    category_data = category.dict()
+    if not category_data.get('slug'):
+        # Create slug from name: lowercase, replace spaces with hyphens, remove special chars
+        slug = re.sub(r'[^a-z0-9-]', '', category_data['name'].lower().replace(' ', '-'))
+        category_data['slug'] = slug
+    
+    db_category = models.Category(**category_data)
     db.add(db_category)
     db.commit()
     db.refresh(db_category)
@@ -543,9 +552,17 @@ def get_category_by_id(db: Session, category_id: int):
 
 def update_category(db: Session, category_id: int, category: schemas.CategoryUpdate):
     """Update category"""
+    import re
+    
     db_category = db.query(models.Category).filter(models.Category.id == category_id).first()
     if db_category:
         update_data = category.dict(exclude_unset=True)
+        
+        # Auto-generate slug from name if name is being updated but slug is not provided
+        if 'name' in update_data and 'slug' not in update_data:
+            slug = re.sub(r'[^a-z0-9-]', '', update_data['name'].lower().replace(' ', '-'))
+            update_data['slug'] = slug
+        
         for field, value in update_data.items():
             setattr(db_category, field, value)
         db.commit()

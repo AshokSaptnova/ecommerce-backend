@@ -124,7 +124,7 @@ class Vendor(VendorBase):
 # Category Schemas
 class CategoryBase(BaseModel):
     name: str
-    slug: str
+    slug: Optional[str] = None
     description: Optional[str] = None
     image_url: Optional[str] = None
     parent_id: Optional[int] = None

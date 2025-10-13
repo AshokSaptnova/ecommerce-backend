@@ -196,6 +196,47 @@ def get_all_orders(
     
     return {"message": f"User {'activated' if is_active else 'deactivated'} successfully"}
 
+# User Management Endpoints
+@router.get("/users", response_model=List[schemas.User])
+def get_all_users(
+    role: Optional[str] = Query(None, description="Filter by user role"),
+    is_active: Optional[bool] = Query(None, description="Filter by active status"),
+    current_admin: models.User = Depends(auth.get_current_admin_user),
+    db: Session = Depends(auth.get_db)
+):
+    """Get all users with filtering options"""
+    query = db.query(models.User)
+    
+    if role:
+        query = query.filter(models.User.role == role)
+    if is_active is not None:
+        query = query.filter(models.User.is_active == is_active)
+    
+    users = query.all()
+    return users
+
+@router.put("/users/{user_id}/status")
+def update_user_status(
+    user_id: int,
+    status_update: Dict[str, bool],
+    current_admin: models.User = Depends(auth.get_current_admin_user),
+    db: Session = Depends(auth.get_db)
+):
+    """Update user active status"""
+    user = crud.get_user_by_id(db, user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    if user.role == schemas.UserRole.ADMIN:
+        raise HTTPException(status_code=400, detail="Cannot modify admin users")
+    
+    is_active = status_update.get("is_active", user.is_active)
+    user.is_active = is_active
+    db.commit()
+    db.refresh(user)
+    
+    return {"message": f"User {'activated' if is_active else 'deactivated'} successfully"}
+
 @router.delete("/users/{user_id}")
 def delete_user(
     user_id: int,
