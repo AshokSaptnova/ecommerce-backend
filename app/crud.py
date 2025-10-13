@@ -76,8 +76,9 @@ def create_user(db: Session, user: schemas.UserCreate):
     return db_user
 
 def get_user_by_email(db: Session, email: str):
-    """Get user by email"""
-    return db.query(models.User).filter(models.User.email == email).first()
+    """Get user by email (case-insensitive)"""
+    email_lower = email.lower()
+    return db.query(models.User).filter(models.User.email == email_lower).first()
 
 def get_user_by_id(db: Session, user_id: int):
     """Get user by ID"""
