@@ -706,10 +706,19 @@ def create_order_from_session_cart(db: Session, session_id: str, checkout_data: 
     import time
     order_number = f"ORD-{int(time.time())}-{session_id[:8]}"
     
-    customer_info = checkout_data.customer_info
-    customer_name = " ".join(
-        filter(None, [customer_info.first_name, customer_info.last_name])
-    ).strip() or customer_info.first_name
+    # Handle customer info - support both nested and flat structure
+    if checkout_data.customer_info:
+        customer_info = checkout_data.customer_info
+        customer_name = " ".join(
+            filter(None, [customer_info.first_name, customer_info.last_name])
+        ).strip() or customer_info.first_name or "Guest"
+        customer_email = customer_info.email
+        customer_phone = customer_info.phone
+    else:
+        # Fallback to flat fields
+        customer_name = checkout_data.customer_name or "Guest"
+        customer_email = checkout_data.customer_email
+        customer_phone = checkout_data.customer_phone
 
     shipping_address = checkout_data.shipping_address.model_dump()
     billing_address = (checkout_data.billing_address or checkout_data.shipping_address).model_dump()
@@ -718,9 +727,9 @@ def create_order_from_session_cart(db: Session, session_id: str, checkout_data: 
     db_order = models.Order(
         order_number=order_number,
         session_id=session_id,
-        customer_email=customer_info.email,
+        customer_email=customer_email,
         customer_name=customer_name,
-        customer_phone=customer_info.phone,
+        customer_phone=customer_phone,
         shipping_address=shipping_address,
         billing_address=billing_address,
         payment_method=checkout_data.payment_method,
