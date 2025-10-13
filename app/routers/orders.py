@@ -41,7 +41,9 @@ def create_order(
         product = crud.get_product_by_id(db, item.product_id)
         if product and product.track_inventory:
             product.stock_quantity -= item.quantity
-            db.commit()
+    
+    db.commit()
+    db.refresh(db_order)
     
     # Clear user's cart after successful order
     crud.clear_user_cart(db=db, user_id=current_user.id)
@@ -201,6 +203,15 @@ def create_order_from_cart(
     
     # Create the order using existing endpoint logic
     order = crud.create_order(db=db, order=order_create, user_id=current_user.id)
+    
+    # Update product stock quantities after order creation
+    for cart_item in cart_items:
+        product = cart_item.product
+        if product.track_inventory:
+            product.stock_quantity -= cart_item.quantity
+    
+    db.commit()
+    db.refresh(order)
     
     # Clear user's cart after successful order creation
     crud.clear_user_cart(db=db, user_id=current_user.id)
