@@ -88,6 +88,22 @@ def delete_product_legacy(product_id: str, db: Session = Depends(get_db)):
 def health_check():
     return {"status": "healthy", "message": "Multi-Vendor eCommerce API is running"}
 
+# Debug endpoint - REMOVE IN PRODUCTION
+@app.get("/debug/user/{email}")
+def debug_user_lookup(email: str, db: Session = Depends(get_db)):
+    """Debug: Check if user exists with any email case"""
+    # Try exact match first
+    user_exact = db.query(models.User).filter(models.User.email == email).first()
+    # Try lowercase
+    user_lower = db.query(models.User).filter(models.User.email == email.lower()).first()
+    
+    return {
+        "searched_email": email,
+        "exact_match": {"exists": bool(user_exact), "email": user_exact.email if user_exact else None},
+        "lowercase_match": {"exists": bool(user_lower), "email": user_lower.email if user_lower else None},
+        "recommendation": "User should login with: " + (user_lower.email if user_lower else "USER NOT FOUND")
+    }
+
 @app.get("/products", response_model=list[schemas.Product])
 def read_products(db: Session = Depends(get_db)):
     return crud.get_products(db)
