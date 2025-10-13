@@ -101,9 +101,6 @@ def get_current_vendor_user(current_user: models.User = Depends(get_current_acti
         )
     return current_user
 
-        )
-    return current_user
-
 def authenticate_user(db: Session, email: str, password: str):
     """Authenticate a user"""
     # Normalize email to lowercase for case-insensitive comparison
