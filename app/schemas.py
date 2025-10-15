@@ -593,6 +593,21 @@ class RefundCreate(BaseModel):
     amount: float
     notes: Optional[Dict[str, Any]] = None
 
+
+# Customer Schemas
+class Customer(BaseModel):
+    id: int
+    full_name: str
+    email: str
+    phone: Optional[str] = None
+    created_at: datetime
+    total_orders: Optional[int] = None
+    total_spent: Optional[float] = None
+    last_order_date: Optional[datetime] = None
+
+    class Config:
+        from_attributes = True
+
 # Wishlist Schemas
 class WishlistBase(BaseModel):
     product_id: int

@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 from . import models, schemas, crud
 from .database import engine, SessionLocal, get_db
 from .routers import auth, products, cart, orders, categories, vendors, admin, addresses, wishlist, payments
+from .routers import customers
 
 models.Base.metadata.create_all(bind=engine)
 
@@ -39,6 +40,7 @@ app.include_router(admin.router)
 app.include_router(addresses.router)
 app.include_router(wishlist.router)
 app.include_router(payments.router)
+app.include_router(customers.router)
 
 def get_db():
     db = SessionLocal()
