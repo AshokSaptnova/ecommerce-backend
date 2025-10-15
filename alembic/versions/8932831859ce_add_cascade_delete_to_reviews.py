@@ -24,7 +24,8 @@ def upgrade() -> None:
     op.drop_index(op.f('idx_orders_razorpay_order_id'), table_name='orders', if_exists=True)
     op.drop_index(op.f('idx_orders_razorpay_payment_id'), table_name='orders', if_exists=True)
     op.drop_index(op.f('idx_orders_session_id'), table_name='orders', if_exists=True)
-    op.create_index(op.f('ix_orders_session_id'), 'orders', ['session_id'], unique=False)
+    # Create index only if it does not exist
+    op.execute("CREATE INDEX IF NOT EXISTS ix_orders_session_id ON orders (session_id);")
     op.alter_column('products', 'vendor_id',
                existing_type=sa.INTEGER(),
                nullable=False)
