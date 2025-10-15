@@ -164,7 +164,7 @@ class Product(Base):
     variants = relationship("ProductVariant", back_populates="product", cascade="all, delete-orphan")
     reviews = relationship("Review", back_populates="product", cascade="all, delete-orphan")
     cart_items = relationship("CartItem", back_populates="product")
-    order_items = relationship("OrderItem", back_populates="product")
+    order_items = relationship("OrderItem", back_populates="product", cascade="all, delete-orphan")
     
     # Keep existing relationships for backward compatibility
     benefits = relationship("Benefit", back_populates="product", cascade="all, delete-orphan")
@@ -296,7 +296,7 @@ class OrderItem(Base):
     
     id = Column(Integer, primary_key=True, index=True)
     order_id = Column(Integer, ForeignKey("orders.id"), nullable=False)
-    product_id = Column(Integer, ForeignKey("products.id"), nullable=False)
+    product_id = Column(Integer, ForeignKey("products.id", ondelete="CASCADE"), nullable=False)
     variant_id = Column(Integer, ForeignKey("product_variants.id"))
     
     # Snapshot of product details at time of order
