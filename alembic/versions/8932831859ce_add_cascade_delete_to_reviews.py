@@ -69,8 +69,8 @@ def upgrade() -> None:
                type_=sa.DateTime(timezone=True),
                existing_nullable=True)
     op.drop_index(op.f('ix_products_product_id'), table_name='products', if_exists=True)
-    op.create_index(op.f('ix_products_sku'), 'products', ['sku'], unique=True)
-    op.create_index(op.f('ix_products_slug'), 'products', ['slug'], unique=True)
+    op.execute("CREATE UNIQUE INDEX IF NOT EXISTS ix_products_sku ON products (sku);")
+    op.execute("CREATE UNIQUE INDEX IF NOT EXISTS ix_products_slug ON products (slug);")
     op.create_foreign_key(None, 'products', 'categories', ['category_id'], ['id'])
     op.create_foreign_key(None, 'products', 'vendors', ['vendor_id'], ['id'])
     op.drop_column('products', 'category')
